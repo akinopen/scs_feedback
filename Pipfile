@@ -9,6 +9,7 @@ black = "*"
 [packages]
 django = "*"
 django-environ = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"
