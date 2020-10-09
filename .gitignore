@@ -1,3 +1,7 @@
+# Ignore cache and compiled files
+__pycache__/
+*.pyc
+
 # Environment file
 .env
 
