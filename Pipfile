@@ -11,6 +11,7 @@ isort = "*"
 django = "*"
 django-environ = "*"
 requests = "*"
+slackclient = "*"
 
 [requires]
 python_version = "3.7"
