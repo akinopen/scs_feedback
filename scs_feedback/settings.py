@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "feedback.apps.FeedbackConfig",
 ]
 
 MIDDLEWARE = [
@@ -80,9 +81,7 @@ WSGI_APPLICATION = "scs_feedback.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    "default": env.db()
-}
+DATABASES = {"default": env.db()}
 
 
 # Password validation
@@ -122,3 +121,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
+
+
+# Feedback platforms
+
+FEEDBACK_PLATFORMS = {
+    "slack": {
+        "class": "feedback.platforms.slack.services.SlackService",
+        "settings": {
+            "signing_secret": env("SLACK_SIGNING_SECRET", str, None),
+            "bot_token": env("SLACK_BOT_TOKEN", str, None),
+        },
+    },
+}
