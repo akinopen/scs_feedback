@@ -11,6 +11,7 @@ model-bakery = "*"
 [packages]
 django = "*"
 django-environ = "*"
+gunicorn = "*"
 requests = "*"
 slackclient = "*"
 
