@@ -12,6 +12,7 @@ model-bakery = "*"
 django = "*"
 django-environ = "*"
 gunicorn = "*"
+psycopg2-binary = "*"
 requests = "*"
 slackclient = "*"
 
