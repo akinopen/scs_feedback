@@ -19,4 +19,6 @@ class FeedbackAdmin(admin.ModelAdmin):
 class RequestAdmin(admin.ModelAdmin):
     list_display = ("sender", "created_at")
     list_filter = ("created_at",)
-    readonly_fields = ("sender", "recipients")
+
+    def has_change_permission(self, request, obj=None):
+        return False
