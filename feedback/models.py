@@ -12,6 +12,9 @@ class User(models.Model):
         verbose_name = _("User")
         verbose_name_plural = _("Users")
 
+    def __str__(self):
+        return self.user_id
+
 
 class Request(models.Model):
     sender = models.ForeignKey(
@@ -62,3 +65,6 @@ class Feedback(models.Model):
     class Meta:
         verbose_name = _("Feedback")
         verbose_name_plural = _("Feedbacks")
+
+    def __str__(self):
+        return f"{self.author} -> {self.recipient}"
