@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "feedback.apps.FeedbackConfig",
+    "feedback",
+    "feedback.platforms.slack",
 ]
 
 MIDDLEWARE = [
@@ -132,8 +133,9 @@ FEEDBACK_PLATFORMS = {
     "slack": {
         "class": "feedback.platforms.slack.services.SlackService",
         "settings": {
+            "client_id": env("SLACK_CLIENT_ID", str, None),
+            "client_secret": env("SLACK_CLIENT_SECRET", str, None),
             "signing_secret": env("SLACK_SIGNING_SECRET", str, None),
-            "bot_token": env("SLACK_BOT_TOKEN", str, None),
         },
     },
 }

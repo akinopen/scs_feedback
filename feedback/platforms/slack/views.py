@@ -1,13 +1,15 @@
 import json
 
 from django.http import HttpRequest, HttpResponse
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import RedirectView
 
 from feedback.platforms import Platform, get_service
 
-__all__ = ("GiveFeedback", "Interaction", "RequestFeedback")
+__all__ = ("CompleteSetup", "GiveFeedback", "Interaction", "RequestFeedback", "Setup")
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -16,8 +18,9 @@ class GiveFeedback(View):
 
     def post(self, request: HttpRequest) -> HttpResponse:
         # noinspection PyTypeChecker
+        team_id = request.POST["team_id"]
         trigger_id = request.POST["trigger_id"]
-        self.service.give_feedback(trigger_id)
+        self.service.give_feedback(team_id, trigger_id)
         return HttpResponse()
 
 
@@ -38,6 +41,24 @@ class RequestFeedback(View):
 
     def post(self, request: HttpRequest) -> HttpResponse:
         # noinspection PyTypeChecker
+        team_id = request.POST["team_id"]
         trigger_id = request.POST["trigger_id"]
-        self.service.request_feedback(trigger_id)
+        self.service.request_feedback(team_id, trigger_id)
         return HttpResponse()
+
+
+class Setup(RedirectView):
+    service = get_service(Platform.SLACK)
+
+    def get_redirect_url(self, *args, **kwargs):
+        redirect_url = self.request.build_absolute_uri(reverse("slack:setup-complete"))
+        return self.service.oauth_service.get_authorization_url(redirect_url)
+
+
+class CompleteSetup(RedirectView):
+    service = get_service(Platform.SLACK)
+    url = "https://www.google.com"  # TODO: This is temporary
+
+    def get(self, request, *args, **kwargs):
+        self.service.register_team(self.request.GET["code"])
+        return super(CompleteSetup, self).get(request, *args, **kwargs)

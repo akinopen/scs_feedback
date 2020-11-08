@@ -1,6 +1,8 @@
 import logging
 from typing import Optional
+from urllib.parse import urlencode
 
+import requests
 from slack import WebClient
 
 from feedback.models import Feedback, Request
@@ -13,6 +15,7 @@ from feedback.platforms.slack.block_kit.elements import (
     PlainTextInput,
     UsersSelect,
 )
+from feedback.platforms.slack.models import Team
 from feedback.platforms.slack.surfaces import Modal
 from feedback.services import FeedbackService
 from scs_feedback.utils import as_dict
@@ -28,9 +31,27 @@ class SlackService(BasePlatform):
     feedback_service = FeedbackService()
 
     def __init__(self, settings):
-        self.client = WebClient(token=settings["bot_token"])
+        self.oauth_service = SlackOAuthService(settings)
 
-    def request_feedback(self, trigger_id: str):
+    def register_team(self, authorization_code: str) -> Team:
+        response = self.oauth_service.get_access_token(authorization_code)
+        if not response["ok"]:
+            raise NotImplementedError(response)
+
+        team, _ = Team.objects.get_or_create(
+            id=response["team"]["id"],
+            defaults={
+                "name": response["team"]["name"],
+                "bot_token": response["access_token"],
+            },
+        )
+        return team
+
+    def _get_client(self, team_id: str) -> WebClient:
+        bot_token = Team.objects.get(id=team_id).bot_token
+        return WebClient(token=bot_token)
+
+    def request_feedback(self, team_id: str, trigger_id: str):
         modal: Modal = Modal(
             title=Text(type=Text.Type.PLAIN, text=self.MODAL_TITLE),
             submit=Text(type=Text.Type.PLAIN, text="Submit"),
@@ -46,11 +67,11 @@ class SlackService(BasePlatform):
                 ),
             ],
         )
-        self.client.views_open(trigger_id=trigger_id, view=as_dict(modal))
+        self._get_client(team_id).views_open(trigger_id=trigger_id, view=as_dict(modal))
 
     def ask_feedback(self, feedback_request: Request, user_id: str):
         text = f"<@{feedback_request.sender.user_id}> requested your feedback"
-        self.client.chat_postMessage(
+        self._get_client(feedback_request.sender.team_id).chat_postMessage(
             text=text,
             channel=user_id,
             blocks=as_dict(
@@ -80,7 +101,9 @@ class SlackService(BasePlatform):
             ),
         )
 
-    def give_feedback(self, trigger_id: str, request: Optional[Request] = None):
+    def give_feedback(
+        self, team_id: str, trigger_id: str, request: Optional[Request] = None
+    ):
         to_block = Input(
             block_id="giveTo",
             label=Text(type=Text.Type.PLAIN, text="Give feedback to:"),
@@ -122,10 +145,10 @@ class SlackService(BasePlatform):
         )
         if request:
             modal.callback_id = str(request.id)
-        self.client.views_open(trigger_id=trigger_id, view=as_dict(modal))
+        self._get_client(team_id).views_open(trigger_id=trigger_id, view=as_dict(modal))
 
     def send_feedback(self, feedback: Feedback):
-        self.client.chat_postMessage(
+        self._get_client(feedback.author.team_id).chat_postMessage(
             channel=f"{feedback.recipient.user_id}",
             blocks=as_dict(
                 [
@@ -176,7 +199,9 @@ class SlackService(BasePlatform):
             for action in actions:
                 if action["action_id"] == "give":
                     request = self.feedback_service.get_request(int(action["value"]))
-                    self.give_feedback(payload["trigger_id"], request)
+                    self.give_feedback(
+                        payload["team"]["id"], payload["trigger_id"], request
+                    )
                 else:
                     logger.error(f"Unhandled action received: {action['action_id']}")
         else:
@@ -222,3 +247,30 @@ class SlackService(BasePlatform):
             request,
         )
         self.send_feedback(feedback)
+
+
+class SlackOAuthService:
+    AUTHORIZE_URL = "https://slack.com/oauth/v2/authorize"
+    ACCESS_TOKEN_URL = "https://slack.com/api/oauth.v2.access"
+    SCOPES = ("chat:write.public", "chat:write", "commands")
+
+    def __init__(self, settings: dict):
+        self.settings = settings
+
+    def get_authorization_url(self, redirect_url: str) -> str:
+        query_params = {
+            "client_id": self.settings["client_id"],
+            "scope": ",".join(self.SCOPES),
+            "redirect_url": redirect_url,
+        }
+        url = f"{self.AUTHORIZE_URL}?{urlencode(query_params)}"
+        return url
+
+    def get_access_token(self, authorization_code: str) -> dict:
+        post_fields = {
+            "code": authorization_code,
+            "client_id": self.settings["client_id"],
+            "client_secret": self.settings["client_secret"],
+        }
+        response = requests.post(self.ACCESS_TOKEN_URL, data=post_fields)
+        return response.json()
