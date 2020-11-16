@@ -51,8 +51,8 @@ class Setup(RedirectView):
     service = get_service(Platform.SLACK)
 
     def get_redirect_url(self, *args, **kwargs):
-        redirect_url = self.request.build_absolute_uri(reverse("slack:setup-complete"))
-        return self.service.oauth_service.get_authorization_url(redirect_url)
+        redirect_uri = self.request.build_absolute_uri(reverse("slack:setup-complete"))
+        return self.service.oauth_service.get_authorization_url(redirect_uri)
 
 
 class CompleteSetup(RedirectView):

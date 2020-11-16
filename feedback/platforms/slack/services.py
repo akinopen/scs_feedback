@@ -257,11 +257,11 @@ class SlackOAuthService:
     def __init__(self, settings: dict):
         self.settings = settings
 
-    def get_authorization_url(self, redirect_url: str) -> str:
+    def get_authorization_url(self, redirect_uri: str) -> str:
         query_params = {
             "client_id": self.settings["client_id"],
             "scope": ",".join(self.SCOPES),
-            "redirect_url": redirect_url,
+            "redirect_uri": redirect_uri,
         }
         url = f"{self.AUTHORIZE_URL}?{urlencode(query_params)}"
         return url
