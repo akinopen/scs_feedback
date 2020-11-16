@@ -5,7 +5,29 @@ from typing import Any, Iterable
 
 from django.core.serializers.json import DjangoJSONEncoder
 
-__all__ = ("DataClassJSONEncoder", "as_dict")
+__all__ = ("ChoicesEnum", "DataClassJSONEncoder", "as_dict")
+
+
+class ChoicesEnum(Enum):
+    """
+    Custom Enum class, heavily inspired by choicesenum package
+    https://pypi.org/project/choicesenum/
+    """
+
+    def __new__(cls, value, display=None):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj._display_ = display
+        return obj
+
+    @classmethod
+    def choices(cls):
+        return [(x.value, x.display) for x in cls]
+
+    @property
+    def display(self):
+        return self._display_ if self._display_ is not None else \
+            self._name_.replace('_', ' ').capitalize()
 
 
 class DictWithoutNone(dict):
