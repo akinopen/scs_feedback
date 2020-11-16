@@ -33,6 +33,7 @@ class Request(models.Model):
     recipients = models.ManyToManyField(
         User, related_name="received_requests", verbose_name=_("Requested from")
     )
+    message = models.TextField(_("Message"), blank=True, null=True)
     status = models.CharField(
         _("Status"),
         max_length=15,
