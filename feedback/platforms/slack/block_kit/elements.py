@@ -47,6 +47,7 @@ class MultiUsersSelect(BaseElement):
 class PlainTextInput(BaseElement):
     action_id: str
     multiline: bool = False
+    placeholder: Optional[str] = None
     type: ElementType = ElementType.PLAIN_TEXT_INPUT
 
 
