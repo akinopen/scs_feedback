@@ -149,14 +149,16 @@ class SlackService(BasePlatform):
         self._get_client(team_id).views_open(trigger_id=trigger_id, view=as_dict(modal))
 
     def send_feedback(self, feedback: Feedback):
+        text = f"New feedback from <@{feedback.author.user_id}>"
         self._get_client(feedback.author.team_id).chat_postMessage(
+            text=text,
             channel=f"{feedback.recipient.user_id}",
             blocks=as_dict(
                 [
                     Section(
                         text=Text(
                             type=Text.Type.MARKDOWN,
-                            text=f"New feedback from <@{feedback.author.user_id}>",
+                            text=text,
                         ),
                     ),
                     Divider(),
