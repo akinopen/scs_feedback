@@ -94,6 +94,7 @@ class SlackService(BasePlatform):
                                 action_id="ignore",
                                 text=Text(type=Text.Type.PLAIN, text="Ignore"),
                                 style=Button.Style.DANGER,
+                                value=str(feedback_request.id),
                             ),
                         ],
                     ),
@@ -183,6 +184,12 @@ class SlackService(BasePlatform):
             ),
         )
 
+    def ignore_request(self, feedback_request: Request, response_url: str):
+        requests.post(response_url, json={
+            "replace_original": True,
+            "text": f"You ignored feedback request from <@{feedback_request.sender.user_id}>"
+        })
+
     def handle_interaction(self, payload: dict):
         if payload["type"] == "view_submission":
             values = payload["view"]["state"]["values"]
@@ -202,6 +209,10 @@ class SlackService(BasePlatform):
                     self.give_feedback(
                         payload["team"]["id"], payload["trigger_id"], request
                     )
+                elif action["action_id"] == "ignore":
+                    request = self.feedback_service.get_request(int(action["value"]))
+                    self.feedback_service.ignore_request(request)
+                    self.ignore_request(request, payload["response_url"])
                 else:
                     logger.error(f"Unhandled action received: {action['action_id']}")
         else:

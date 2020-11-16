@@ -28,6 +28,10 @@ class BasePlatform:
     def send_feedback(self, *args, **kwargs):
         raise NotImplementedError
 
+    @abstractmethod
+    def ignore_request(self, *args, **kwargs):
+        raise NotImplementedError
+
 
 def get_service(platform: Platform):
     feedback_platform = settings.FEEDBACK_PLATFORMS[platform.value]

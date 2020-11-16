@@ -38,3 +38,8 @@ class FeedbackService:
             request=feedback_request,
         )
         return feedback
+
+    @staticmethod
+    def ignore_request(feedback_request: Request):
+        feedback_request.status = Request.Status.IGNORED.value
+        feedback_request.save()
