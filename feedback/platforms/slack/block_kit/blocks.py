@@ -22,6 +22,7 @@ class Input(BaseBlock):
     label: Text
     element: BaseElement
     block_id: str
+    optional: bool = False
     type: BlockType = BlockType.INPUT
 
 
