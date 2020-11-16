@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from scs_feedback.utils import ChoicesEnum
+
 __all__ = ("Feedback", "Request", "User")
 
 
@@ -17,6 +19,11 @@ class User(models.Model):
 
 
 class Request(models.Model):
+    class Status(ChoicesEnum):
+        PENDING = "pending", _("Pending")
+        IGNORED = "ignored", _("Ignored")
+        REPLIED = "replied", _("Replied")
+
     sender = models.ForeignKey(
         User,
         related_name="requests",
@@ -25,6 +32,12 @@ class Request(models.Model):
     )
     recipients = models.ManyToManyField(
         User, related_name="received_requests", verbose_name=_("Requested from")
+    )
+    status = models.CharField(
+        _("Status"),
+        max_length=15,
+        choices=Status.choices(),
+        default=Status.PENDING.value
     )
     created_at = models.DateTimeField(_("Created at"), auto_now_add=True)
 
