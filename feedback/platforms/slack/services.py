@@ -65,6 +65,13 @@ class SlackService(BasePlatform):
                         placeholder=Text(type=Text.Type.PLAIN, text="Select users"),
                     ),
                 ),
+                Divider(),
+                Input(
+                    block_id="requestMessage",
+                    label=Text(type=Text.Type.PLAIN, text="Message"),
+                    optional=True,
+                    element=PlainTextInput(action_id="actionMessage", multiline=True),
+                ),
             ],
         )
         self._get_client(team_id).views_open(trigger_id=trigger_id, view=as_dict(modal))
@@ -80,6 +87,12 @@ class SlackService(BasePlatform):
                         text=Text(
                             type=Text.Type.MARKDOWN,
                             text=text,
+                        ),
+                    ),
+                    Section(
+                        text=Text(
+                            type=Text.Type.MARKDOWN,
+                            text=feedback_request.message,
                         ),
                     ),
                     Actions(
@@ -230,7 +243,9 @@ class SlackService(BasePlatform):
             self.feedback_service.get_user(user_id=u, team_id=team_id)
             for u in values["requestFrom"]["actionFrom"]["selected_users"]
         ]
-        request = self.feedback_service.create_request(sender, recipients)
+        request = self.feedback_service.create_request(
+            sender, recipients, values["requestMessage"]["actionMessage"]["value"]
+        )
         for recipient in recipients:
             self.ask_feedback(request, recipient.user_id)
 
