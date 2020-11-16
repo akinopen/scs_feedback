@@ -15,7 +15,9 @@ class FeedbackService:
         return Request.objects.get(id=request_id)
 
     @staticmethod
-    def create_request(sender: User, recipients: Sequence[User], message: Optional[str]) -> Request:
+    def create_request(
+        sender: User, recipients: Sequence[User], message: Optional[str]
+    ) -> Request:
         request = Request.objects.create(sender=sender, message=message)
         request.recipients.add(*recipients)
         return request

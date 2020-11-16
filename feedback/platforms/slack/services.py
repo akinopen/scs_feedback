@@ -200,10 +200,13 @@ class SlackService(BasePlatform):
         )
 
     def ignore_request(self, feedback_request: Request, response_url: str):
-        requests.post(response_url, json={
-            "replace_original": True,
-            "text": f"You ignored feedback request from <@{feedback_request.sender.user_id}>"
-        })
+        requests.post(
+            response_url,
+            json={
+                "replace_original": True,
+                "text": f"You ignored feedback request from <@{feedback_request.sender.user_id}>",
+            },
+        )
 
     def handle_interaction(self, payload: dict):
         if payload["type"] == "view_submission":

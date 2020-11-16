@@ -38,7 +38,7 @@ class Request(models.Model):
         _("Status"),
         max_length=15,
         choices=Status.choices(),
-        default=Status.PENDING.value
+        default=Status.PENDING.value,
     )
     created_at = models.DateTimeField(_("Created at"), auto_now_add=True)
 

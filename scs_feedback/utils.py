@@ -26,8 +26,11 @@ class ChoicesEnum(Enum):
 
     @property
     def display(self):
-        return self._display_ if self._display_ is not None else \
-            self._name_.replace('_', ' ').capitalize()
+        return (
+            self._display_
+            if self._display_ is not None
+            else self._name_.replace("_", " ").capitalize()
+        )
 
 
 class DictWithoutNone(dict):
