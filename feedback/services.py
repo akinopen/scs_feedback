@@ -37,6 +37,9 @@ class FeedbackService:
             stop_doing=stop_doing,
             request=feedback_request,
         )
+        if feedback_request:
+            feedback_request.status = Request.Status.REPLIED.value
+            feedback_request.save()
         return feedback
 
     @staticmethod
