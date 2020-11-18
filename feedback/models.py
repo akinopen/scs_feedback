@@ -30,8 +30,11 @@ class Request(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Request by"),
     )
-    recipients = models.ManyToManyField(
-        User, related_name="received_requests", verbose_name=_("Requested from")
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="received_requests",
+        verbose_name=_("Requested from"),
     )
     message = models.TextField(_("Message"), blank=True, null=True)
     status = models.CharField(

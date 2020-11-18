@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Optional
 
 from feedback.models import Feedback, Request, User
 
@@ -16,10 +16,11 @@ class FeedbackService:
 
     @staticmethod
     def create_request(
-        sender: User, recipients: Sequence[User], message: Optional[str]
+        sender: User, recipient: User, message: Optional[str]
     ) -> Request:
-        request = Request.objects.create(sender=sender, message=message)
-        request.recipients.add(*recipients)
+        request = Request.objects.create(
+            sender=sender, message=message, recipient=recipient
+        )
         return request
 
     @staticmethod

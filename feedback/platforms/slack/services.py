@@ -60,9 +60,9 @@ class SlackService(BasePlatform):
                 Input(
                     block_id="requestFrom",
                     label=Text(type=Text.Type.PLAIN, text="Request feedback from:"),
-                    element=MultiUsersSelect(
+                    element=UsersSelect(
                         action_id="actionFrom",
-                        placeholder=Text(type=Text.Type.PLAIN, text="Select users"),
+                        placeholder=Text(type=Text.Type.PLAIN, text="Select user"),
                     ),
                 ),
                 Divider(),
@@ -242,15 +242,14 @@ class SlackService(BasePlatform):
         sender = self.feedback_service.get_user(
             user_id=payload["user"]["id"], team_id=team_id
         )
-        recipients = [
-            self.feedback_service.get_user(user_id=u, team_id=team_id)
-            for u in values["requestFrom"]["actionFrom"]["selected_users"]
-        ]
-        request = self.feedback_service.create_request(
-            sender, recipients, values["requestMessage"]["actionMessage"]["value"]
+        recipient = self.feedback_service.get_user(
+            user_id=values["requestFrom"]["actionFrom"]["selected_user"],
+            team_id=team_id,
         )
-        for recipient in recipients:
-            self.ask_feedback(request, recipient.user_id)
+        request = self.feedback_service.create_request(
+            sender, recipient, values["requestMessage"]["actionMessage"]["value"]
+        )
+        self.ask_feedback(request, recipient.user_id)
 
     def handle_give_feedback(self, payload: dict):
         values = payload["view"]["state"]["values"]
