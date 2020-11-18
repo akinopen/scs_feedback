@@ -92,7 +92,7 @@ class SlackService(BasePlatform):
                     Section(
                         text=Text(
                             type=Text.Type.MARKDOWN,
-                            text=feedback_request.message,
+                            text=f"*Message:* {feedback_request.message}",
                         ),
                     ),
                     Actions(
