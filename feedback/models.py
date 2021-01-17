@@ -7,6 +7,7 @@ __all__ = ("Feedback", "Request", "User")
 
 
 class User(models.Model):
+    # TODO: Create a Team model with platform field and make this a FK
     team_id = models.CharField(_("Team Id"), max_length=50)
     user_id = models.CharField(_("User Id"), max_length=50)
     username = models.CharField(_("Username"), max_length=255, blank=True, null=True)
