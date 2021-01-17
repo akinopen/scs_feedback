@@ -9,13 +9,17 @@ __all__ = ("Feedback", "Request", "User")
 class User(models.Model):
     team_id = models.CharField(_("Team Id"), max_length=50)
     user_id = models.CharField(_("User Id"), max_length=50)
+    username = models.CharField(_("Username"), max_length=255, blank=True, null=True)
+    full_name = models.CharField(_("Full name"), max_length=255, blank=True, null=True)
+    avatar = models.URLField(_("Avatar"), blank=True, null=True)
+    email = models.EmailField(_("Email"), blank=True, null=True)
 
     class Meta:
         verbose_name = _("User")
         verbose_name_plural = _("Users")
 
     def __str__(self):
-        return self.user_id
+        return self.full_name or self.username or self.email or self.user_id
 
 
 class Request(models.Model):
