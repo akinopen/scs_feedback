@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 import requests
 from slack import WebClient
 
-from feedback.models import Feedback, Request
+from feedback.models import Feedback, Request, User
 from feedback.platforms import BasePlatform
 from feedback.platforms.slack.block_kit import Text
 from feedback.platforms.slack.block_kit.blocks import Actions, Divider, Input, Section
@@ -46,6 +46,17 @@ class SlackService(BasePlatform):
             },
         )
         return team
+
+    def update_user_profile(self, user: User) -> User:
+        info = self._get_client(user.team_id).users_info(user=user.user_id)
+        if info["ok"]:
+            user.username = info["user"].get("username", None)
+            user.full_name = info["user"].get("real_name", None)
+            user.email = info["user"].get("profile", {}).get("email", None)
+            user.avatar = info["user"].get("profile", {}).get("image_512", None)
+            user.save()
+
+        return user
 
     def _get_client(self, team_id: str) -> WebClient:
         bot_token = Team.objects.get(id=team_id).bot_token
@@ -242,10 +253,12 @@ class SlackService(BasePlatform):
         sender = self.feedback_service.get_user(
             user_id=payload["user"]["id"], team_id=team_id
         )
+        self.update_user_profile(sender)
         recipient = self.feedback_service.get_user(
             user_id=values["requestFrom"]["actionFrom"]["selected_user"],
             team_id=team_id,
         )
+        self.update_user_profile(recipient)
         request = self.feedback_service.create_request(
             sender, recipient, values["requestMessage"]["actionMessage"]["value"]
         )
@@ -257,6 +270,7 @@ class SlackService(BasePlatform):
         author = self.feedback_service.get_user(
             user_id=payload["user"]["id"], team_id=team_id
         )
+        self.update_user_profile(author)
 
         if "giveTo" in values:
             request = None
@@ -264,6 +278,7 @@ class SlackService(BasePlatform):
                 user_id=values["giveTo"]["actionTo"]["selected_user"],
                 team_id=team_id,
             )
+            self.update_user_profile(recipient)
         else:
             callback_id = payload["view"]["callback_id"]
             request = self.feedback_service.get_request(int(callback_id))
@@ -282,7 +297,13 @@ class SlackService(BasePlatform):
 class SlackOAuthService:
     AUTHORIZE_URL = "https://slack.com/oauth/v2/authorize"
     ACCESS_TOKEN_URL = "https://slack.com/api/oauth.v2.access"
-    SCOPES = ("chat:write.public", "chat:write", "commands")
+    SCOPES = (
+        "chat:write.public",
+        "chat:write",
+        "commands",
+        "users:read",
+        "users:read.email"
+    )
 
     def __init__(self, settings: dict):
         self.settings = settings
