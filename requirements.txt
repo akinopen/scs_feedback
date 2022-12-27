@@ -25,7 +25,7 @@ psycopg2-binary==2.8.6
 pytz==2021.3
 requests==2.24.0
 sentry-sdk==0.19.2
-setuptools==60.8.2; python_version >= '3.7'
+setuptools==65.5.1; python_version >= '3.7'
 slackclient==2.9.3
 sqlparse==0.4.2; python_version >= '3.5'
 typing-extensions==4.0.1; python_version < '3.8'
